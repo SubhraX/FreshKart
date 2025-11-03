@@ -6,8 +6,8 @@ This is the main monorepo for the FreshCart e-commerce application, containing b
 
 This project is managed as an `npm workspace`.
 
-  * `/freshcart-frontend`: The React frontend application.
-  * `/freshcart-backend`: The Node.js API backend.
+  * `/frontend`: The React frontend application.
+  * `/backend`: The Node.js API backend.
 
 -----
 
@@ -35,7 +35,7 @@ You must run all commands from the **root `FreshCart` folder**.
 ### 1. Run the Backend (API)
 
 ```bash
-npm run start -w freshcart-backend
+npm run start -w backend
 ```
 
 > **Note:** This requires you to have a `"start"` script in your `freshcart-backend/package.json`. If you don't, add one.
@@ -53,7 +53,7 @@ npm run start -w freshcart-backend
 In a **new terminal**, run:
 
 ```bash
-npm run start -w freshcart-frontend
+npm run start -w frontend
 ```
 
 The React app will open on `http://localhost:3000`.
@@ -66,9 +66,9 @@ To add new packages to a specific project, use the `-w` (workspace) flag.
 
   * **To add a frontend package:**
     ```bash
-    npm install <package-name> -w freshcart-frontend
+    npm install <package-name> -w frontend
     ```
   * **To add a backend package:**
     ```bash
-    npm install <package-name> -w freshcart-backend
+    npm install <package-name> -w backend
     ```
