@@ -1,82 +1,80 @@
 import React, { useState } from 'react';
-import { formatCurrency } from '../utils/format';
 import { Plus, Minus } from 'lucide-react';
 
 const ProductCard = ({ product, onAddToCart }) => {
-  // --- Logic copied from MinimalProductCard ---
-  const [quantity, setQuantity] = useState(0); 
-  const handleQuantityChange = (delta) => {
-      const newQuantity = quantity + delta;
-      if (newQuantity >= 0) {
-          setQuantity(newQuantity);
-          onAddToCart(product, newQuantity); // Pass full info up
-      }
-  };
-  // --- End of copied logic ---
+    const [quantity, setQuantity] = useState(0);
 
-  const displayPrice = product.DiscountedPrice || product.Price;
-  const originalPrice = product.DiscountedPrice ? product.Price : null;
+    const handleIncrement = () => {
+        const newQuantity = quantity + 1;
+        setQuantity(newQuantity);
+        onAddToCart(product, newQuantity);
+    };
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col">
-      {/* Image */}
-      <div className="h-40 w-full flex items-center justify-center p-4 bg-gray-50 rounded-t-lg overflow-hidden">
-        <img
-          src={product.Image_URL || `https://placehold.co/150x150/cccccc/333333?text=${product.Brand}`}
-          alt={product.ProductName}
-          className="h-full w-full object-contain"
-          onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/150x150/cccccc/333333?text=${product.Brand}`; }}
-        />
-      </div>
+    const handleDecrement = () => {
+        if (quantity > 0) {
+            const newQuantity = quantity - 1;
+            setQuantity(newQuantity);
+            onAddToCart(product, newQuantity);
+        }
+    };
 
-      {/* Info */}
-      <div className="p-4 flex-grow flex flex-col">
-        <p className="text-xs text-gray-500 uppercase">{product.Brand}</p>
-        <h3 className="text-sm font-semibold text-gray-800 truncate h-10">
-          {product.ProductName}
-        </h3>
-        <p className="text-xs text-gray-500 mt-1">{product.Unit}</p>
+    const handleImageClick = () => {
+        if (product.absoluteUrl) {
+            window.open(product.absoluteUrl, '_blank');
+        }
+    };
 
-        {/* Price */}
-        <div className="flex-grow mt-4">
-          <span className="text-base font-bold text-gray-900">{formatCurrency(displayPrice)}</span>
-          {originalPrice && (
-            <span className="text-xs text-gray-400 line-through ml-2">{formatCurrency(originalPrice)}</span>
-          )}
+    return (
+        <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-4 flex flex-col">
+            <img
+                src={product.imageUrl}
+                alt={product.productName}
+                className="w-full h-48 object-contain mb-3 cursor-pointer"
+                onClick={handleImageClick}
+            />
+            
+            <div className="flex-grow">
+                <p className="text-xs text-gray-500 mb-1">{product.brand}</p>
+                <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2 min-h-[40px]">
+                    {product.productName}
+                </h3>
+                
+                <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg font-bold text-gray-900">
+                        ₹{product.discountedPrice}
+                    </span>
+                    <span className="text-sm text-gray-500 line-through">
+                        ₹{product.price}
+                    </span>
+                </div>
+            </div>
+
+            {quantity === 0 ? (
+                <button
+                    onClick={handleIncrement}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors font-medium"
+                >
+                    Add to Cart
+                </button>
+            ) : (
+                <div className="flex items-center justify-between bg-green-50 border-2 border-green-600 rounded-lg p-2">
+                    <button
+                        onClick={handleDecrement}
+                        className="text-green-600 hover:bg-green-100 rounded p-1 transition-colors"
+                    >
+                        <Minus size={18} />
+                    </button>
+                    <span className="font-bold text-green-700">{quantity}</span>
+                    <button
+                        onClick={handleIncrement}
+                        className="text-green-600 hover:bg-green-100 rounded p-1 transition-colors"
+                    >
+                        <Plus size={18} />
+                    </button>
+                </div>
+            )}
         </div>
-
-        {/* Add Button / Stepper */}
-        <div className="mt-4">
-          {quantity === 0 ? (
-              <button
-                  onClick={() => handleQuantityChange(1)}
-                  className="w-full flex items-center justify-center px-3 py-2 text-sm font-semibold bg-green-600 text-white rounded-md shadow-md hover:bg-green-700 transition-colors"
-              >
-                  <Plus size={16} className="mr-1" /> Add
-              </button>
-          ) : (
-              <div className="flex items-center justify-between space-x-2 bg-green-600 text-white rounded-md p-1.5">
-                  <button 
-                      onClick={() => handleQuantityChange(-1)} 
-                      className="p-1 rounded-full hover:bg-green-700 transition-colors"
-                      aria-label="Decrease quantity"
-                  >
-                      <Minus size={16} />
-                  </button>
-                  <span className="font-semibold text-sm w-4 text-center">{quantity}</span>
-                  <button 
-                      onClick={() => handleQuantityChange(1)} 
-                      className="p-1 rounded-full hover:bg-green-700 transition-colors"
-                      aria-label="Increase quantity"
-                  >
-                      <Plus size={16} />
-                  </button>
-              </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default ProductCard;

@@ -7,7 +7,7 @@ const HomePage = ({ setView }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSelectCategory = (categoryName) => {
-    setView({ name: 'shop', categoryName });
+    setView({ name: 'shop', categoryName: categoryName });
   };
 
   const filteredCategories = CATEGORIES.filter(category =>
@@ -23,7 +23,6 @@ const HomePage = ({ setView }) => {
         Find fresh ingredients fast. Select a category below to browse our expertly curated selection.
       </p>
 
-      {/* Search Bar */}
       <div className="max-w-xl mx-auto px-4 mb-12">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -37,7 +36,6 @@ const HomePage = ({ setView }) => {
         </div>
       </div>
 
-      {/* Grid of Categories */}
       {filteredCategories.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-4">
           {filteredCategories.map(category => (
