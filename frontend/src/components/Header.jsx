@@ -20,6 +20,8 @@ const Header = ({ setView }) => (
           <span>AI Recipe Maker</span>
         </button>
 
+        {/* Removed the 'Shop' button here. Users will use category cards on home page. */}
+
         {/* Login Placeholder */}
         <button
           className="p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"

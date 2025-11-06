@@ -1,17 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css'; // <-- ADD THIS LINE
-import App from './App'; // Import your main App component
+import { BrowserRouter } from 'react-router-dom'; // <-- 1. Import
+import './index.css';
+import App from './App.jsx';
 
-// 1. Find the "root" div from your index.html
-const rootElement = document.getElementById('root');
-
-// 2. Create a React root to render into that element
-const root = ReactDOM.createRoot(rootElement);
-
-// 3. Tell React to render your <App /> component
+const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter> {/* <-- 2. Wrap App */}
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 );

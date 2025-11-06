@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react'; // Keep for the cart page example
 
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 export default function App() {
   const [view, setView] = useState({ name: 'home' });
 
+  // Helper to convert URL slug to readable category name
   const slugToName = (slug) => {
     return slug
       .split('-')
@@ -16,6 +17,7 @@ export default function App() {
       .join(' ');
   };
 
+  // Effect to read initial URL path on first load
   useEffect(() => {
     const path = window.location.pathname;
     
@@ -23,15 +25,18 @@ export default function App() {
       setView({ name: 'login' });
     } else if (path === '/cart') {
       setView({ name: 'cart' });
+    } else if (path === '/shop') { // Specific route for "All Products"
+      setView({ name: 'shop', categoryName: 'all' }); // Explicitly set 'all'
     } else if (path.startsWith('/category/')) {
       const categorySlug = path.replace('/category/', '');
       const categoryName = slugToName(categorySlug);
       setView({ name: 'shop', categoryName: categoryName });
     } else {
-      setView({ name: 'home' });
+      setView({ name: 'home' }); // Default to home (categories selection)
     }
   }, []);
 
+  // Effect to handle browser back/forward buttons
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname;
@@ -40,12 +45,14 @@ export default function App() {
         setView({ name: 'login' });
       } else if (path === '/cart') {
         setView({ name: 'cart' });
+      } else if (path === '/shop') { // Specific route for "All Products"
+        setView({ name: 'shop', categoryName: 'all' }); // Explicitly set 'all'
       } else if (path.startsWith('/category/')) {
         const categorySlug = path.replace('/category/', '');
         const categoryName = slugToName(categorySlug);
         setView({ name: 'shop', categoryName: categoryName });
       } else {
-        setView({ name: 'home' });
+        setView({ name: 'home' }); // Default to home
       }
     };
 
@@ -53,6 +60,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Custom navigation function
   const navigate = (newView) => {
     setView(newView);
     
@@ -61,10 +69,15 @@ export default function App() {
       path = '/login';
     } else if (newView.name === 'cart') {
       path = '/cart';
-    } else if (newView.name === 'shop' && newView.categoryName) {
-      const slug = newView.categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-      path = `/category/${slug}`;
+    } else if (newView.name === 'shop') {
+      if (newView.categoryName && newView.categoryName !== 'all') { // If a specific category is selected
+        const slug = newView.categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        path = `/category/${slug}`;
+      } else {
+        path = '/shop'; // Route for "All Products"
+      }
     }
+    // If newView.name is 'home', path remains '/'
     
     window.history.pushState({}, '', path);
   };
