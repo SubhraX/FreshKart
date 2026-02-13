@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import PaymentSuccessModal from "../components/PaymentSuccessModal";
 import { ChevronLeft, Trash2, Plus, Minus, ShoppingBag, CreditCard, MapPin } from 'lucide-react';
 
 const CartPage = ({ cartItems, onAddToCart, setView }) => {
@@ -12,9 +11,6 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
     pincode: '',
   });
 
-  const [showModal, setShowModal] = useState(false);
-
-  // Calculate prices
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.discountedPrice * item.quantity,
     0
@@ -25,17 +21,39 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
 
   const handleAddressChange = (e) => {
     const { name, value } = e.target;
-    setAddress((prev) => ({ ...prev, [name]: value }));
+    setAddress(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCheckout = () => {
-    if (!address.fullName || !address.phone || !address.street || !address.pincode) {
-      alert("Please fill in all delivery address details before proceeding.");
+  const handleCheckout = async () => {
+  if (!address.fullName || !address.phone || !address.street || !address.pincode) {
+    alert("Please fill in all delivery address details.");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:5000/api/payment/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: cartItems,
+        deliveryFee: deliveryFee
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!data.url) {
+      alert("Failed to create checkout session.");
       return;
     }
 
-    setShowModal(true);
-  };
+    window.location.href = data.url;
+
+  } catch (error) {
+    console.error(error);
+    alert("Payment failed. Try again.");
+  }
+};
 
   if (cartItems.length === 0) {
     return (
@@ -45,7 +63,6 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
             <ShoppingBag size={40} className="text-gray-400" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Your cart is empty</h2>
-          <p className="text-gray-500 mb-8">Add some fresh items to your basket to get started!</p>
           <button
             onClick={() => setView({ name: 'home' })}
             className="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg"
@@ -59,12 +76,13 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
 
   return (
     <div className="pt-24 pb-12 max-w-6xl mx-auto px-4">
+
       <div className="flex items-center mb-8">
         <button 
-          onClick={() => setView({ name: 'home' })} 
-          className="mr-4 p-2 hover:bg-white rounded-full transition-colors shadow-sm"
+          onClick={() => setView({ name: 'home' })}
+          className="mr-4 p-2 hover:bg-white rounded-full shadow-sm"
         >
-          <ChevronLeft size={24} className="text-gray-600" />
+          <ChevronLeft size={24} />
         </button>
         <h1 className="text-3xl font-black text-gray-800">Shopping Cart</h1>
       </div>
@@ -73,57 +91,55 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
 
         {/* LEFT COLUMN */}
         <div className="flex-1 space-y-8">
-          
+
+          {/* Cart Items */}
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-700">Items ({cartItems.length})</h2>
-            {cartItems.map((item) => (
-              <div key={item._id || item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                
-                <img 
-                  src={item.imageUrl} 
-                  alt={item.productName} 
-                  className="w-24 h-24 object-contain rounded-lg bg-gray-50" 
+            {cartItems.map(item => (
+              <div key={item._id || item.id}
+                className="bg-white p-4 rounded-2xl shadow-sm border flex items-center gap-4">
+
+                <img
+                  src={item.imageUrl}
+                  alt={item.productName}
+                  className="w-24 h-24 object-contain rounded-lg bg-gray-50"
                 />
 
                 <div className="flex-grow">
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">
-                    {item.brand}
-                  </span>
-                  <h3 className="font-bold text-gray-800 line-clamp-1">
+                  <h3 className="font-bold text-gray-800">
                     {item.productName}
                   </h3>
-                  <p className="text-green-700 font-semibold mt-1">
+                  <p className="text-green-700 font-semibold">
                     ₹{item.discountedPrice.toFixed(2)}
                   </p>
 
-                  <div className="flex items-center mt-3">
-                    <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200">
-                      <button 
-                        onClick={() => onAddToCart(item, item.quantity - 1)}
-                        className="p-1.5 hover:text-green-600 transition-colors"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="px-4 font-bold text-sm text-gray-700">
-                        {item.quantity}
-                      </span>
-                      <button 
-                        onClick={() => onAddToCart(item, item.quantity + 1)}
-                        className="p-1.5 hover:text-green-600 transition-colors"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
+                  <div className="flex items-center mt-3 bg-gray-50 rounded-lg border w-fit">
+                    <button
+                      onClick={() => onAddToCart(item, item.quantity - 1)}
+                      className="p-2"
+                    >
+                      <Minus size={16} />
+                    </button>
+
+                    <span className="px-4 font-bold">
+                      {item.quantity}
+                    </span>
+
+                    <button
+                      onClick={() => onAddToCart(item, item.quantity + 1)}
+                      className="p-2"
+                    >
+                      <Plus size={16} />
+                    </button>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <p className="font-bold text-lg text-gray-900">
+                  <p className="font-bold text-lg">
                     ₹{(item.discountedPrice * item.quantity).toFixed(2)}
                   </p>
-                  <button 
+                  <button
                     onClick={() => onAddToCart(item, 0)}
-                    className="text-gray-400 hover:text-red-500 mt-4 transition-colors p-1"
+                    className="text-red-500 mt-3"
                   >
                     <Trash2 size={20} />
                   </button>
@@ -132,11 +148,11 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
             ))}
           </div>
 
-          {/* ADDRESS SECTION */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
+          {/* DELIVERY ADDRESS SECTION */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border">
+            <div className="flex items-center gap-2 mb-6 border-b pb-4">
               <MapPin className="text-green-600" />
-              <h2 className="text-xl font-bold text-gray-800">Delivery Address</h2>
+              <h2 className="text-xl font-bold">Delivery Address</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -147,7 +163,7 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
                 value={address.fullName}
                 onChange={handleAddressChange}
                 placeholder="Full Name"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500"
+                className="border p-3 rounded-xl"
               />
 
               <input
@@ -156,7 +172,7 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
                 value={address.phone}
                 onChange={handleAddressChange}
                 placeholder="Phone Number"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500"
+                className="border p-3 rounded-xl"
               />
 
               <input
@@ -165,7 +181,7 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
                 value={address.pincode}
                 onChange={handleAddressChange}
                 placeholder="Pincode"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500"
+                className="border p-3 rounded-xl"
               />
 
               <textarea
@@ -174,7 +190,7 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
                 onChange={handleAddressChange}
                 placeholder="Street Address"
                 rows="2"
-                className="w-full md:col-span-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500"
+                className="border p-3 rounded-xl md:col-span-2"
               />
 
               <input
@@ -183,83 +199,49 @@ const CartPage = ({ cartItems, onAddToCart, setView }) => {
                 value={address.city}
                 onChange={handleAddressChange}
                 placeholder="City & State"
-                className="w-full md:col-span-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500"
+                className="border p-3 rounded-xl md:col-span-2"
               />
 
             </div>
           </div>
+
         </div>
 
         {/* RIGHT COLUMN */}
         <div className="lg:w-96">
-          <div className="bg-white p-6 rounded-3xl shadow-xl border border-green-50 sticky top-24">
-            <h2 className="text-xl font-bold mb-6 text-gray-800">Order Summary</h2>
+          <div className="bg-white p-6 rounded-3xl shadow-xl sticky top-24">
 
-            <div className="space-y-4 pb-6 border-b border-gray-100">
-              <div className="flex justify-between text-gray-600">
-                <span>Basket Subtotal</span>
-                <span>₹{subtotal.toFixed(2)}</span>
-              </div>
+            <h2 className="text-xl font-bold mb-6">Order Summary</h2>
 
-              <div className="flex justify-between text-gray-600">
-                <span>Delivery Fee</span>
-                <span>
-                  {deliveryFee === 0 
-                    ? <span className="text-green-600 font-bold">FREE</span>
-                    : `₹${deliveryFee.toFixed(2)}`
-                  }
-                </span>
-              </div>
+            <div className="flex justify-between mb-2">
+              <span>Subtotal</span>
+              <span>₹{subtotal.toFixed(2)}</span>
             </div>
 
-            <div className="flex justify-between py-6 text-2xl font-black">
+            <div className="flex justify-between mb-4">
+              <span>Delivery</span>
+              <span>{deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}</span>
+            </div>
+
+            <div className="flex justify-between text-2xl font-black mb-6">
               <span>Total</span>
-              <span className="text-green-700">₹{total.toFixed(2)}</span>
+              <span className="text-green-700">
+                ₹{total.toFixed(2)}
+              </span>
             </div>
 
             <button
               onClick={handleCheckout}
-              className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+              className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold hover:bg-green-700 transition-all"
             >
-              <CreditCard size={20} />
+              <CreditCard size={18} className="inline mr-2" />
               Proceed to Payment
             </button>
 
-            {deliveryFee > 0 && (
-              <div className="mt-4 p-3 bg-green-50 rounded-xl border border-green-100">
-                <p className="text-xs text-center text-green-800">
-                  Add <strong>₹{(500 - subtotal).toFixed(2)}</strong> more for <strong>FREE delivery</strong>!
-                </p>
-              </div>
-            )}
           </div>
         </div>
+
       </div>
-
-      {/* SUCCESS MODAL */}
-      {showModal && (
-        <PaymentSuccessModal
-          onClose={() => {
-            setShowModal(false);
-
-            // Clear cart
-            cartItems.forEach(item => onAddToCart(item, 0));
-
-            // Reset address
-            setAddress({
-              fullName: '',
-              phone: '',
-              street: '',
-              city: '',
-              pincode: '',
-            });
-
-            // Optional redirect:
-            // setView({ name: 'home' });
-          }}
-        />
-      )}
-
     </div>
   );
 };

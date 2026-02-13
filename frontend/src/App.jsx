@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import CategoryShopPage from './pages/CategoryShopPage';
 import LoginPage from './pages/LoginPage';
 import CartPage from './pages/CartPage';
+import SuccessPage from './pages/SuccessPage'; // ✅ NEW
 
 const slugToName = (slug) => {
   return slug
@@ -28,9 +29,12 @@ export default function App() {
     localStorage.setItem('freshcart_items', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const totalItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItemsCount = cartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
 
-  // 🔥 UPDATED AUTH CHECK
+  // AUTH CHECK
   const checkAuthStatus = () => {
     const token = localStorage.getItem('auth_token');
     const savedUser = localStorage.getItem('user');
@@ -48,6 +52,8 @@ export default function App() {
       setView({ name: 'login' });
     } else if (path === '/cart') {
       setView({ name: 'cart' });
+    } else if (path === '/success') { // ✅ NEW
+      setView({ name: 'success' });
     } else if (path === '/shop') {
       setView({ name: 'shop', categoryName: 'all' });
     } else if (path.startsWith('/category/')) {
@@ -65,6 +71,7 @@ export default function App() {
 
       if (path === '/login') setView({ name: 'login' });
       else if (path === '/cart') setView({ name: 'cart' });
+      else if (path === '/success') setView({ name: 'success' }); // ✅ NEW
       else if (path === '/shop') setView({ name: 'shop', categoryName: 'all' });
       else if (path.startsWith('/category/')) {
         const categorySlug = path.replace('/category/', '');
@@ -81,11 +88,15 @@ export default function App() {
     checkAuthStatus();
 
     let path = '/';
+
     if (newView.name === 'login') path = '/login';
     else if (newView.name === 'cart') path = '/cart';
+    else if (newView.name === 'success') path = '/success'; // ✅ NEW
     else if (newView.name === 'shop') {
       if (newView.categoryName && newView.categoryName !== 'all') {
-        const slug = newView.categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const slug = newView.categoryName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-');
         path = `/category/${slug}`;
       } else {
         path = '/shop';
@@ -104,10 +115,14 @@ export default function App() {
 
     setCartItems(prevItems => {
       const productId = product._id || product.id;
-      const existingItem = prevItems.find(item => (item._id || item.id) === productId);
+      const existingItem = prevItems.find(
+        item => (item._id || item.id) === productId
+      );
 
       if (newQuantity <= 0) {
-        return prevItems.filter(item => (item._id || item.id) !== productId);
+        return prevItems.filter(
+          item => (item._id || item.id) !== productId
+        );
       }
 
       if (existingItem) {
@@ -133,8 +148,10 @@ export default function App() {
             cartItems={cartItems}
           />
         );
+
       case 'login':
         return <LoginPage setView={navigate} />;
+
       case 'cart':
         return (
           <CartPage
@@ -143,6 +160,16 @@ export default function App() {
             setView={navigate}
           />
         );
+
+      case 'success': // ✅ NEW
+        return (
+          <SuccessPage
+            cartItems={cartItems}
+            onAddToCart={handleAddToCart}
+            setView={navigate}
+          />
+        );
+
       case 'home':
       default:
         return <HomePage setView={navigate} />;
@@ -155,7 +182,7 @@ export default function App() {
         setView={navigate}
         isLoggedIn={isLoggedIn}
         cartCount={totalItemsCount}
-        user={user} // 🔥 PASS USER TO HEADER
+        user={user}
       />
 
       <main className="min-h-[calc(100vh-64px)]">
