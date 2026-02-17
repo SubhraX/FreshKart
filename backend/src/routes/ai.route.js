@@ -10,10 +10,14 @@ router.post("/recipe", async (req, res) => {
     const { dish } = req.body;
     if (!dish) return res.status(400).json({ message: "Dish name required" });
 
-    // 1. AI GENERATION
+    // 1. AI GENERATION - Salt included, Water strictly excluded
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Provide a JSON array of raw ingredients for "${dish}". Keep names simple (e.g., "chicken", "chilli", "oil").`
+      contents: `Provide a JSON array of essential raw cooking ingredients for "${dish}". 
+      - Keep names simple (e.g., "chicken", "oil", "salt").
+      - DO NOT include water or common tap utilities.
+      - Salt is allowed.
+      - Return ONLY the JSON array.`
     });
 
     const ingredientList = JSON.parse(response.text.match(/\[.*\]/s)[0]);
@@ -31,6 +35,9 @@ router.post("/recipe", async (req, res) => {
     const result = ingredientList.map((ingredient) => {
       const rawInput = ingredient.toLowerCase().trim();
       
+      // --- FINAL WATER FILTER ---
+      if (rawInput === "water" || rawInput === "tap water") return null;
+
       const normalize = (str) => str.replace(/ies$|s$|i$|y$/g, '');
       
       const searchTerms = rawInput
@@ -60,7 +67,7 @@ router.post("/recipe", async (req, res) => {
           if (["egg", "chicken", "meat", "fish"].some(word => rawInput.includes(word))) {
             if (category === "Eggs, Meat & Fish") score += 150; 
           }
-          if (["oil", "masala", "dal", "rice", "atta"].some(word => rawInput.includes(word))) {
+          if (["oil", "masala", "dal", "rice", "atta", "salt"].some(word => rawInput.includes(word))) {
             if (category === "Foodgrains, Oil & Masala") score += 100;
           }
 
@@ -76,7 +83,7 @@ router.post("/recipe", async (req, res) => {
           const hasExclusion = exclusions.some(ex => name.includes(ex));
           
           if (hasExclusion && !rawInput.includes("masala") && !rawInput.includes("powder")) {
-            score -= 80; // Heavier penalty to keep masalas away from raw meat
+            score -= 80; 
           }
 
           return { product, score };
@@ -90,7 +97,7 @@ router.post("/recipe", async (req, res) => {
         name: ingredient,
         matchedProducts
       };
-    });
+    }).filter(res => res !== null); // Removes null entries like water from final response
 
     res.json({ ingredients: result });
   } catch (error) {
