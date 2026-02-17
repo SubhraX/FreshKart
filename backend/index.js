@@ -4,7 +4,9 @@ import cors from "cors";
 import { ConnectDB } from "./src/lib/db.js";
 import itemRoutes from './src/routes/item.route.js';
 import authRoutes from './src/routes/auth.route.js';
-import paymentRoutes from './src/routes/payment.js'; // ✅ NEW IMPORT
+import paymentRoutes from './src/routes/payment.js';
+import aiRoutes from "./src/routes/ai.route.js";
+
 
 dotenv.config();
 
@@ -20,6 +22,8 @@ app.use(express.json());
 // Existing routes
 app.use('/items', itemRoutes);
 app.use('/api/auth', authRoutes);
+app.use("/api/ai", aiRoutes);
+
 
 // ✅ NEW: Stripe Payment Route
 app.use('/api/payment', paymentRoutes);

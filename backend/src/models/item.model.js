@@ -10,6 +10,7 @@ const itemSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    
     brand:{
         type: String,
         required: true,
@@ -37,3 +38,4 @@ const itemSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 export const Item = mongoose.model('Item', itemSchema);
+export default Item;
